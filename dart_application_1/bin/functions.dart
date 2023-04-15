@@ -111,6 +111,7 @@ double countMatrixDet(List<List<double>> matrix_to_det) {
 
 //возвращает матрицу и свободные коэффициенты дополнительным столбцом из файла
 Future<List<List<double>>> defineMatrixFromFile(File file_to_read) async {
+
   var all_data_in_file = await file_to_read.readAsLines();
   int matrix_size = int.parse(all_data_in_file[0]);
   List<List<double>> matrix_to_return = List.generate(
@@ -205,7 +206,7 @@ List<double> countUnknownVariables(List<List<double>> matrix) {
 }
 
 //определить невязки
-List<double> findDiscrepancies(List<List<double>> matrix, List<double> x_variables,List<double> out_discrenacies) {
+List<double> countDiscrepancies(List<List<double>> matrix, List<double> x_variables, List<double> discrenacies) {
   double left_side = 0;
 
   for (int row = 0; row < matrix.length; row++) {
@@ -213,9 +214,9 @@ List<double> findDiscrepancies(List<List<double>> matrix, List<double> x_variabl
     for (int column = 0; column < matrix.length; column++) {
       left_side += matrix[row][column] * x_variables[column];
     }
-    out_discrenacies[row] = matrix[row][matrix.length] - left_side;
+    discrenacies[row] = matrix[row][matrix.length] - left_side;
   }
-  return out_discrenacies;
+  return discrenacies;
 }
 
 //посчитать обратную матрицу
@@ -258,4 +259,52 @@ List<List<double>> transposeMatrix(List<List<double>> initial_matrix) {
     }
   }
   return copy_matrix;
+}
+
+//записать результаты в файл
+void writeResults(File file, List<List<double>> inverse_matrix, List<double> x_variables,
+List<double> discrepancies) {
+
+  //удаление из матрицы свободных членов
+  for (List<double> row in inverse_matrix) {
+    row.removeAt(inverse_matrix.length);
+  }
+
+  clearFileBelowLine(file);
+
+  file.writeAsStringSync('\nРезультаты:\n', mode: FileMode.append);
+
+  file.writeAsStringSync('\nНеизвестные:\n', mode: FileMode.append);
+  for(int el = 0; el < x_variables.length; el++) {
+    file.writeAsStringSync('x${el+1} = ${x_variables[el].toStringAsFixed(2)};\n', mode: FileMode.append);
+  }
+
+  file.writeAsStringSync('\nНевязки:\n', mode: FileMode.append);
+  for(int el = 0; el < discrepancies.length; el++) {
+    file.writeAsStringSync('r${el+1} = ${discrepancies[el]};\n', mode: FileMode.append);
+  }
+
+  file.writeAsStringSync('\nОбратная матрица:\n', mode: FileMode.append);
+  for (List<double> row in inverse_matrix) {
+    file.writeAsStringSync('${row.join(' ').toString()}\n', mode: FileMode.append);
+  }
+
+  
+}
+
+//очистить файл от старых результатов
+void clearFileBelowLine(File file)  {
+
+  int line_index = 0;
+  final lines = file.readAsLinesSync();
+  for (String line in lines) {
+    line_index++;
+    if (line == 'Результаты:') {
+      line_index--;
+      break;
+    }
+  }
+
+  final updatedLines = lines.sublist(0, line_index);
+  file.writeAsStringSync(updatedLines.join('\n'));
 }

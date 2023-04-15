@@ -9,7 +9,7 @@ void main() async {
   File file = File('D:\\Dart Projects\\dart_application_1\\lib\\test.txt');
 
   var matrix = await defineMatrixFromFile(file);
-  List<double> unknown_variables = List.filled(matrix.length, 0);
+  List<double> x_variables = List.filled(matrix.length, 0);
   List<double> discrepancies = List.filled(matrix.length, 0);
 
   var inverse_matrix = makeMatrixDeepCopy(matrix);
@@ -20,20 +20,22 @@ void main() async {
     print('Матрица не имеет нулевых колонок\n');
 
     turnToTriangle(matrix);
-    unknown_variables = countUnknownVariables(matrix);
+    x_variables = countUnknownVariables(matrix);
 
     printMatrixSystem(matrix);
     print('');
 
-    printUnknownVariables(unknown_variables);   
+    printUnknownVariables(x_variables);   
 
     print('\nНевязки:');
-    findDiscrepancies(matrix, unknown_variables, discrepancies);
+    countDiscrepancies(matrix, x_variables, discrepancies);
     printDiscrepancies(discrepancies); 
 
     print('\nОбратная матрица:');
     inverse_matrix = createInverseMatrix(inverse_matrix);
     printMatrixLite(inverse_matrix);
+
+    writeResults(file, inverse_matrix, x_variables, discrepancies);
   } else {
     print('\nМатрица вырожденная или имеет нулевые колонки');
   }
